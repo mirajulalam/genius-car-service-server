@@ -11,6 +11,23 @@ app.use(cors());
 app.use(express.json());
 
 
+function varifyjwt(req, res, next) {
+    const authHeader = req.headers.authorization;
+    console.log(authHeader);
+
+    if (!authHeader) {
+        return res.status(401).send({ message: "unauthorized access" })
+    }
+    // const token = authHeader.split(' ')[1];
+    // jwt.varify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    //     if (err) {
+    //         return res.status(403).send({ message: "Forbidden access" })
+    //     }
+    //     console.log("decoded", decoded);
+    // })
+    next();
+}
+
 
 
 
@@ -31,6 +48,7 @@ async function run() {
             });
             res.send({ accessToken })
         })
+
 
         // services api
         app.get('/service', async (req, res) => {
@@ -63,9 +81,9 @@ async function run() {
         })
         // post orderCollection api
 
-        app.get('/order', async (req, res) => {
-            const authHeader = req.headers.authorization;
-            console.log(authHeader);
+        app.get('/order', varifyjwt, async (req, res) => {
+
+
             const email = req.query.email;
             const query = { email: email };
             const cursor = orderCollection.find(query)
@@ -77,7 +95,6 @@ async function run() {
             const result = await orderCollection.insertOne(order)
             res.send(result)
         });
-
 
     }
     finally {
